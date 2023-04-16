@@ -7,8 +7,4 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\COPADS-2\PrimeGen\PrimeGen.csproj" />
-    </ItemGroup>
-
 </Project>
