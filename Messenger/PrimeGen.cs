@@ -28,15 +28,15 @@ public static class PrimeGen {
         
         int[] lowPrimes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31 };
         foreach (var n in lowPrimes) {
-            if (BigInteger.Remainder(value, n) == 0) {
+            if (value % n == 0) {
                 return false;
             }
         }
 
-        var d = BigInteger.Subtract(value, 1);
+        var d = value - 1;
         var r = 0;
         while (d.IsEven) {
-            d = BigInteger.Divide(d, 2);
+            d /= 2;
             r++;
         }
         
@@ -44,16 +44,16 @@ public static class PrimeGen {
             BigInteger a;
             do {
                 a = new BigInteger(RandomNumberGenerator.GetBytes(bits/8), true);
-            } while (a < 2 || BigInteger.Compare(a, BigInteger.Subtract(value, 2)) > 0);
+            } while (a < 2 || a > value - 2);
             var x = BigInteger.ModPow(a, d, value);
-            if (x == 1 || BigInteger.Compare(x, BigInteger.Subtract(value, 1)) == 0) {
+            if (x == 1 || x == value - 1) {
                 continue;
             }
 
             var y = BigInteger.ModPow(x, 2, value);
             for (var j = 0; j < r; j++) {
                 y = BigInteger.ModPow(x, 2, value);
-                if (y == 1 && x != 1 && BigInteger.Compare(x, BigInteger.Subtract(value, 1)) != 0) {
+                if (y == 1 && x != 1 && x != value - 1) {
                     return false;
                 }
                 x = y;
