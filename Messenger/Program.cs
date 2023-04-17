@@ -42,9 +42,9 @@ public class Program {
         BigInteger E = 7;
         var D = ModInverse(E, r);
 
-        var publicKey = new KeyFile(E, N);
+        var publicKey = new PublicKey(E, N);
         publicKey.Save("public.key");
-        var privateKey = new KeyFile(D, N);
+        var privateKey = new PrivateKey(D, N);
         privateKey.Save("private.key");
     }
     
@@ -79,18 +79,13 @@ public class Program {
         return v;
     }
 
-    public class KeyFile {
-        public List<string> email { get; set; } = new ();
-        
+    public abstract class KeyFile {
         public string key { get; set; }
 
-        
-        [JsonConstructor]
-        public KeyFile(List<string> email, string key) {
-            this.email = email;
+        public KeyFile(string key) {
             this.key = key;
         }
-        
+
         public KeyFile(BigInteger X, BigInteger N) {
             var XBytes = X.ToByteArray();
             var NBytes = N.ToByteArray();
@@ -102,20 +97,50 @@ public class Program {
             this.key = Convert.ToBase64String(key.ToArray());
         }
 
-        public void AddEmail(string email) {
-            this.email.Add(email);
-        }
-
-        public string toJSON() => JsonSerializer.Serialize(this);
+        public abstract string toJSON();
 
         public void Save(string filename) {
             File.WriteAllText(filename, toJSON());
         }
 
-        public static KeyFile? Read(string filename) {
-            return JsonSerializer.Deserialize<KeyFile>(File.ReadAllText(filename));
-        }
-
         public override string ToString() => toJSON();
+    }
+
+    public class PublicKey : KeyFile {
+        public string email { get; set; }
+        
+        public PublicKey(BigInteger X, BigInteger N) : base(X, N) {}
+
+        [JsonConstructor]
+        public PublicKey(string email, string key) : base(key) {
+            this.email = email;
+        }
+        
+        public override string toJSON() => JsonSerializer.Serialize(this);
+
+        public static PublicKey? Read(string filename) {
+            return JsonSerializer.Deserialize<PublicKey>(File.ReadAllText(filename));
+        }
+    }
+    
+    public class PrivateKey : KeyFile {
+        public List<string> email { get; set; } = new ();
+        
+        public PrivateKey(BigInteger X, BigInteger N) : base(X, N) {}
+
+        [JsonConstructor]
+        public PrivateKey(List<string> email, string key) : base(key) {
+            this.email = email;
+        }
+        
+        public void AddEmail(string email) {
+            this.email.Add(email);
+        }
+        
+        public override string toJSON() => JsonSerializer.Serialize(this);
+
+        public static PrivateKey? Read(string filename) {
+            return JsonSerializer.Deserialize<PrivateKey>(File.ReadAllText(filename));
+        }
     }
 }
