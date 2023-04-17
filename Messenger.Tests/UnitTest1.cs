@@ -23,6 +23,8 @@ public class Tests {
     [Test]
     public void TestKeyGen() {
         var (r, E, D) = Program.KeyGen();
+        Assert.Less(E, r);
+        Assert.False(E % r == 0);
         Assert.AreEqual(BigInteger.One, E * D % r);
     }
 }
