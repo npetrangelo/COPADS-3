@@ -12,8 +12,8 @@ public class Tests {
     [Test]
     public void TestKeyFile() {
         var file = new Program.PrivateKey(64, 128);
-        file.Save("test.txt");
-        var retrieved = Program.PrivateKey.Read("test.txt");
+        file.Save();
+        var retrieved = Program.PrivateKey.Read();
         Console.WriteLine(file.ToString());
         Assert.AreEqual(file.ToString(), retrieved.ToString());
     }

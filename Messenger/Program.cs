@@ -115,11 +115,13 @@ public class Program {
         public PublicKey(string email, string key) : base(key) {
             this.email = email;
         }
+
+        public void Save() => base.Save("public.key");
         
         public override string toJSON() => JsonSerializer.Serialize(this);
 
-        public static PublicKey? Read(string filename) {
-            return JsonSerializer.Deserialize<PublicKey>(File.ReadAllText(filename));
+        public static PublicKey? Read() {
+            return JsonSerializer.Deserialize<PublicKey>(File.ReadAllText("public.key"));
         }
     }
     
@@ -137,10 +139,12 @@ public class Program {
             this.email.Add(email);
         }
         
+        public void Save() => base.Save("private.key");
+        
         public override string toJSON() => JsonSerializer.Serialize(this);
 
-        public static PrivateKey? Read(string filename) {
-            return JsonSerializer.Deserialize<PrivateKey>(File.ReadAllText(filename));
+        public static PrivateKey? Read() {
+            return JsonSerializer.Deserialize<PrivateKey>(File.ReadAllText("private.key"));
         }
     }
 }
