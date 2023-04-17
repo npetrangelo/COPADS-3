@@ -3,8 +3,10 @@ using System.Numerics;
 namespace Messenger.Tests;
 
 public class Tests {
-    [SetUp]
-    public void Setup() { }
+    [OneTimeSetUp]
+    public void Setup() {
+        Program.Client.BaseAddress = new Uri("http://kayrun.cs.rit.edu:5000");
+    }
 
     [Test, Order(0)]
     public void TestPrivateKey() {
@@ -54,5 +56,16 @@ public class Tests {
         Console.WriteLine(message);
         Console.WriteLine(encrypted);
         Assert.AreEqual(message, privateKey.Decrypt(encrypted));
+    }
+    
+    [Test, Order(2)]
+    public void TestGetKey() => Program.GetKey("toivcs@rit.edu");
+
+
+    [Test, Order(2)]
+    public void TestSendKey() {
+        var email = "nap7292@rit.edu";
+        Program.SendKey(email);
+        Program.GetKey(email);
     }
 }

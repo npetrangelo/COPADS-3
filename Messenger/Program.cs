@@ -1,13 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Net;
 using System.Numerics;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Messenger;
 
 public class Program {
-    private static readonly HttpClient Client = new ();
+    public static readonly HttpClient Client = new ();
+    private const string Email = "nap7292@rit.edu";
     public static void Main(string[] args) {
         Console.WriteLine("Hello, World!");
         Client.BaseAddress = new Uri("http://kayrun.cs.rit.edu:5000");
@@ -17,10 +17,10 @@ public class Program {
                 KeyGen();
                 break;
             case "sendKey":
-                SendKey(BigInteger.Parse(args[1]));
+                SendKey(args[1]);
                 break;
             case "getKey":
-                // var key = GetKey();
+                GetKey(args[1]);
                 break;
             case "sendMsg":
                 SendMsg(args[1]);
@@ -36,7 +36,7 @@ public class Program {
 
     public static (BigInteger, BigInteger, BigInteger) KeyGen() {
         var pBits = 480;
-        BigInteger N, r, E = 7, D;
+        BigInteger N, r, E = 29, D;
         do {
             var p = PrimeGen.NextPrime(pBits);
             var q = PrimeGen.NextPrime(1024 - pBits);
@@ -53,13 +53,25 @@ public class Program {
         return (r, E, D);
     }
     
-    public static void SendKey(BigInteger key) {
+    public static void SendKey(string email) {
+        var privateKey = Key.Private.Read();
+        privateKey.AddEmail(email);
+        privateKey.Save();
         
+        var publicKey = Key.Public.Read();
+        publicKey.SetEmail(email);
+        // Force the put to complete before returning
+        var done = Client.PutAsync($"/Key/{email}", new StringContent(publicKey.toJSON())).Result;
     }
     
-    // public static BigInteger GetKey() {
-    //     
-    // }
+    public static void GetKey(string email) {
+        var response = Client.GetAsync($"/Key/{email}").Result;
+        if (response.StatusCode != HttpStatusCode.OK) {
+            throw new ArgumentException($"Email doesn't exist: {response.StatusCode}");
+        }
+        var key = Key.Public.fromJSON(response.Content.ReadAsStringAsync().Result);
+        key.Save($"{email}.key");
+    }
     
     public static void SendMsg(string msg) {
         

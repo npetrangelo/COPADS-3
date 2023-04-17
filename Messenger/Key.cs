@@ -13,9 +13,10 @@ public abstract class Key {
     public Key(string key) {
         this.key = key;
         var bytes = Convert.FromBase64String(key);
-        var x = BitConverter.ToInt32(bytes, 0);
+        Console.WriteLine(Convert.ToHexString(bytes));
+        var x = BitConverter.ToInt32(bytes.Take(new Range(0, 4)).Reverse().ToArray(), 0);
         _X = new BigInteger(bytes.Take(new Range(4, x + 4)).ToArray());
-        var nBytes = BitConverter.ToInt32(bytes, 4 + x);
+        var nBytes = BitConverter.ToInt32(bytes.Take(new Range(4 + x, 4 + x + 4)).Reverse().ToArray(), 0);
         _N = new BigInteger(bytes.Take(new Range(4 + x + 4, 4 + x + 4 + nBytes)).ToArray());
     }
 
@@ -25,9 +26,9 @@ public abstract class Key {
         var XBytes = X.ToByteArray();
         var NBytes = N.ToByteArray();
         var key = new List<byte>();
-        key.AddRange(BitConverter.GetBytes(XBytes.Length));
+        key.AddRange(BitConverter.GetBytes(XBytes.Length).Reverse());
         key.AddRange(XBytes);
-        key.AddRange(BitConverter.GetBytes(NBytes.Length));
+        key.AddRange(BitConverter.GetBytes(NBytes.Length).Reverse());
         key.AddRange(NBytes);
         this.key = Convert.ToBase64String(key.ToArray());
     }
@@ -42,10 +43,14 @@ public abstract class Key {
 
     public abstract string toJSON();
 
-    protected void Save(string filename) => File.WriteAllText(filename, toJSON());
+    public static T? fromJSON<T>(string content) {
+        return JsonSerializer.Deserialize<T>(content);
+    }
+
+    public void Save(string filename) => File.WriteAllText(filename, toJSON());
 
     protected static TValue? Read<TValue>(string filename) {
-        return JsonSerializer.Deserialize<TValue>(File.ReadAllText(filename));
+        return fromJSON<TValue>(File.ReadAllText(filename));
     }
 
     public override bool Equals(object? obj) {
@@ -70,6 +75,10 @@ public abstract class Key {
         public Public(string email, string key) : base(key) {
             this.email = email;
         }
+
+        public void SetEmail(string email) {
+            this.email = email;
+        }
         
         public string Encrypt(string message) {
             var msg = new BigInteger(Encoding.UTF8.GetBytes(message));
@@ -78,6 +87,8 @@ public abstract class Key {
         }
         
         public override string toJSON() => JsonSerializer.Serialize(this);
+        
+        public static Public? fromJSON(string content) => Key.fromJSON<Public>(content);
 
         public void Save() => base.Save("public.key");
         
@@ -105,6 +116,8 @@ public abstract class Key {
         }
         
         public override string toJSON() => JsonSerializer.Serialize(this);
+
+        public static Private? fromJSON(string content) => Key.fromJSON<Private>(content);
 
         public void Save() => base.Save("private.key");
         
