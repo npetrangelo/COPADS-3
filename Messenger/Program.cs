@@ -86,11 +86,20 @@ public class Program {
     public abstract class KeyFile {
         public string key { get; set; }
 
+        private BigInteger _X, _N;
+
         public KeyFile(string key) {
             this.key = key;
+            var bytes = Convert.FromBase64String(key);
+            var xBytes = BitConverter.ToInt32(bytes, 0);
+            _X = new BigInteger(bytes.Take(new Range(4, xBytes + 4)).ToArray());
+            var nBytes = BitConverter.ToInt32(bytes, 4 + xBytes);
+            _N = new BigInteger(bytes.Take(new Range(4 + xBytes + 4, 4 + xBytes + 4 + nBytes)).ToArray());
         }
 
         public KeyFile(BigInteger X, BigInteger N) {
+            _X = X;
+            _N = N;
             var XBytes = X.ToByteArray();
             var NBytes = N.ToByteArray();
             var key = new List<byte>();
@@ -109,6 +118,17 @@ public class Program {
             return JsonSerializer.Deserialize<TValue>(File.ReadAllText(filename));
         }
 
+        public override bool Equals(object? obj) {
+            if (obj == null) return false;
+            if (GetType() != obj.GetType()) return false;
+            obj = (KeyFile) obj;
+            return Equals((KeyFile) obj);
+        }
+        
+        public bool Equals(KeyFile that) {
+            return toJSON() == that.toJSON() && key == that.key && _X == that._X && _N == that._N;
+        }
+
         public override string ToString() => toJSON();
     }
 
@@ -121,13 +141,12 @@ public class Program {
         public PublicKey(string email, string key) : base(key) {
             this.email = email;
         }
-
-        public void Save() => base.Save("public.key");
         
         public override string toJSON() => JsonSerializer.Serialize(this);
 
+        public void Save() => base.Save("public.key");
+        
         public static PublicKey? Read() => KeyFile.Read<PublicKey>("public.key");
-
     }
     
     public class PrivateKey : KeyFile {
@@ -144,10 +163,10 @@ public class Program {
             this.email.Add(email);
         }
         
-        public void Save() => base.Save("private.key");
-        
         public override string toJSON() => JsonSerializer.Serialize(this);
 
+        public void Save() => base.Save("private.key");
+        
         public static PrivateKey? Read() => KeyFile.Read<PrivateKey>("private.key");
     }
 }

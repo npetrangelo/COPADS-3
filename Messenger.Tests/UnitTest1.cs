@@ -17,7 +17,7 @@ public class Tests {
         file.Save();
         var retrieved = Program.PrivateKey.Read();
         Console.WriteLine(file.ToString());
-        Assert.AreEqual(file.ToString(), retrieved.ToString());
+        Assert.AreEqual(file, retrieved);
     }
 
     [Test]
