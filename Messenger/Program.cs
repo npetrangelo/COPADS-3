@@ -7,6 +7,7 @@ using Messenger;
 
 public class Program {
     private static readonly HttpClient Client = new ();
+    public static BigInteger r, D, E; // Stored for unit testing
     public static void Main(string[] args) {
         Console.WriteLine("Hello, World!");
         Client.BaseAddress = new Uri("http://kayrun.cs.rit.edu:5000");
@@ -35,12 +36,16 @@ public class Program {
 
     public static void KeyGen() {
         var pBits = 480;
-        var p = PrimeGen.NextPrime(pBits);
-        var q = PrimeGen.NextPrime(1024 - pBits);
-        var N = p * q;
-        var r = (p - 1) * (q - 1);
-        BigInteger E = 7;
-        var D = ModInverse(E, r);
+        BigInteger N;
+        do {
+            var p = PrimeGen.NextPrime(pBits);
+            var q = PrimeGen.NextPrime(1024 - pBits);
+            N = p * q;
+            r = (p - 1) * (q - 1);
+            E = 7;
+            D = ModInverse(E, r);
+            // Sometimes has a remainder of 7, try again if so
+        } while (D * E % r != BigInteger.One);
 
         var publicKey = new PublicKey(E, N);
         publicKey.Save();

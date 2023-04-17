@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace Messenger.Tests;
 
 public class Tests {
@@ -16,5 +18,11 @@ public class Tests {
         var retrieved = Program.PrivateKey.Read();
         Console.WriteLine(file.ToString());
         Assert.AreEqual(file.ToString(), retrieved.ToString());
+    }
+
+    [Test]
+    public void TestKeyGen() {
+        Program.KeyGen();
+        Assert.AreEqual(BigInteger.One, Program.D * Program.E % Program.r);
     }
 }
