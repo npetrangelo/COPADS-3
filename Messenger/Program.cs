@@ -43,9 +43,9 @@ public class Program {
         var D = ModInverse(E, r);
 
         var publicKey = new PublicKey(E, N);
-        publicKey.Save("public.key");
+        publicKey.Save();
         var privateKey = new PrivateKey(D, N);
-        privateKey.Save("private.key");
+        privateKey.Save();
     }
     
     public static void SendKey(BigInteger key) {
@@ -99,8 +99,10 @@ public class Program {
 
         public abstract string toJSON();
 
-        public void Save(string filename) {
-            File.WriteAllText(filename, toJSON());
+        protected void Save(string filename) => File.WriteAllText(filename, toJSON());
+
+        protected static TValue? Read<TValue>(string filename) {
+            return JsonSerializer.Deserialize<TValue>(File.ReadAllText(filename));
         }
 
         public override string ToString() => toJSON();
@@ -120,9 +122,8 @@ public class Program {
         
         public override string toJSON() => JsonSerializer.Serialize(this);
 
-        public static PublicKey? Read() {
-            return JsonSerializer.Deserialize<PublicKey>(File.ReadAllText("public.key"));
-        }
+        public static PublicKey? Read() => KeyFile.Read<PublicKey>("public.key");
+
     }
     
     public class PrivateKey : KeyFile {
@@ -143,8 +144,6 @@ public class Program {
         
         public override string toJSON() => JsonSerializer.Serialize(this);
 
-        public static PrivateKey? Read() {
-            return JsonSerializer.Deserialize<PrivateKey>(File.ReadAllText("private.key"));
-        }
+        public static PrivateKey? Read() => KeyFile.Read<PrivateKey>("private.key");
     }
 }
