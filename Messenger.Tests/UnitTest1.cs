@@ -11,6 +11,7 @@ public class Tests {
         var file = new Key.Private(PrimeGen.NextPrime(32), PrimeGen.NextPrime(32));
         file.Save();
         var retrieved = Key.Private.Read();
+        Console.WriteLine(Convert.ToHexString(file.toBytes()));
         Console.WriteLine(file.ToString());
         Console.WriteLine(retrieved.ToString());
         Assert.AreEqual(file, retrieved);
@@ -21,6 +22,7 @@ public class Tests {
         var file = new Key.Public(PrimeGen.NextPrime(32), PrimeGen.NextPrime(32));
         file.Save();
         var retrieved = Key.Public.Read();
+        Console.WriteLine(Convert.ToHexString(file.toBytes()));
         Console.WriteLine(file.ToString());
         Console.WriteLine(retrieved.ToString());
         Assert.AreEqual(file, retrieved);
@@ -38,7 +40,7 @@ public class Tests {
     public void TestEncrypt() {
         var privateKey = Key.Private.Read();
         var publicKey = Key.Public.Read();
-        Assert.AreEqual(privateKey.N, publicKey.N);
+        Assert.AreEqual(privateKey.N(), publicKey.N());
         var message = PrimeGen.NextPrime(32);
         Assert.AreEqual(message, privateKey.Encrypt(publicKey.Encrypt(message)));
     }

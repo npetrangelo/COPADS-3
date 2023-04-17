@@ -7,9 +7,7 @@ namespace Messenger;
 
 public abstract class Key {
     public string key { get; set; }
-        
-    public BigInteger N { get => _N; }
-
+    
     private BigInteger _X, _N;
 
     public Key(string key) {
@@ -31,9 +29,12 @@ public abstract class Key {
         key.AddRange(XBytes);
         key.AddRange(BitConverter.GetBytes(NBytes.Length));
         key.AddRange(NBytes);
-        Console.WriteLine($"[{String.Join(",", key)}]");
         this.key = Convert.ToBase64String(key.ToArray());
     }
+
+    public BigInteger N() => _N;
+
+    public byte[] toBytes() => Convert.FromBase64String(key);
 
     public BigInteger Encrypt(BigInteger msg) {
         return BigInteger.ModPow(msg, _X, _N);
@@ -58,7 +59,7 @@ public abstract class Key {
         return toJSON() == that.toJSON() && key == that.key && _X == that._X && _N == that._N;
     }
 
-    public override string ToString() => $"_X={_X} _N={_N} {toJSON()}";
+    public override string ToString() => $"_X=0x{Convert.ToHexString(_X.ToByteArray())} _N=0x{Convert.ToHexString(_N.ToByteArray())} {toJSON()}";
     
     public class Public : Key {
         public string email { get; set; }
