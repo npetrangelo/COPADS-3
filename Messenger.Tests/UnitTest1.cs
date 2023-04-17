@@ -22,7 +22,7 @@ public class Tests {
 
     [Test]
     public void TestKeyGen() {
-        Program.KeyGen();
-        Assert.AreEqual(BigInteger.One, Program.D * Program.E % Program.r);
+        var (r, E, D) = Program.KeyGen();
+        Assert.AreEqual(BigInteger.One, E * D % r);
     }
 }
