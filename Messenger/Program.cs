@@ -43,7 +43,9 @@ public class Program {
         var D = ModInverse(E, r);
 
         var publicKey = new KeyFile(E, N);
+        publicKey.Save("public.key");
         var privateKey = new KeyFile(D, N);
+        privateKey.Save("private.key");
     }
     
     public static void SendKey(BigInteger key) {
@@ -79,10 +81,12 @@ public class Program {
 
     public class KeyFile {
         public List<string> email { get; set; } = new ();
-        public byte[] key { get; set; }
+        
+        public string key { get; set; }
 
+        
         [JsonConstructor]
-        public KeyFile(List<string> email, byte[] key) {
+        public KeyFile(List<string> email, string key) {
             this.email = email;
             this.key = key;
         }
@@ -95,23 +99,23 @@ public class Program {
             key.AddRange(XBytes);
             key.AddRange(BitConverter.GetBytes(NBytes.Length));
             key.AddRange(NBytes);
-            this.key = key.ToArray();
+            this.key = Convert.ToBase64String(key.ToArray());
         }
 
         public void AddEmail(string email) {
             this.email.Add(email);
         }
 
+        public string toJSON() => JsonSerializer.Serialize(this);
+
         public void Save(string filename) {
-            File.WriteAllText(filename, JsonSerializer.Serialize(this));
+            File.WriteAllText(filename, toJSON());
         }
 
         public static KeyFile? Read(string filename) {
             return JsonSerializer.Deserialize<KeyFile>(File.ReadAllText(filename));
         }
 
-        public override string ToString() {
-            return $"Emails: [{string.Join(",", email)}] Key: [{string.Join(",", key)}]";
-        }
+        public override string ToString() => toJSON();
     }
 }
