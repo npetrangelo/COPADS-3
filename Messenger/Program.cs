@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Numerics;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Messenger;
@@ -45,9 +46,9 @@ public class Program {
             // Sometimes has a remainder of 7, try again if so
         } while (D * E % r != BigInteger.One); 
 
-        var publicKey = new PublicKey(E, N);
+        var publicKey = new Key.Public(E, N);
         publicKey.Save();
-        var privateKey = new PrivateKey(D, N);
+        var privateKey = new Key.Private(D, N);
         privateKey.Save();
         return (r, E, D);
     }
@@ -81,92 +82,5 @@ public class Program {
         v %= n;
         if (v<0) v = (v+n) % n;
         return v;
-    }
-
-    public abstract class KeyFile {
-        public string key { get; set; }
-
-        private BigInteger _X, _N;
-
-        public KeyFile(string key) {
-            this.key = key;
-            var bytes = Convert.FromBase64String(key);
-            var xBytes = BitConverter.ToInt32(bytes, 0);
-            _X = new BigInteger(bytes.Take(new Range(4, xBytes + 4)).ToArray());
-            var nBytes = BitConverter.ToInt32(bytes, 4 + xBytes);
-            _N = new BigInteger(bytes.Take(new Range(4 + xBytes + 4, 4 + xBytes + 4 + nBytes)).ToArray());
-        }
-
-        public KeyFile(BigInteger X, BigInteger N) {
-            _X = X;
-            _N = N;
-            var XBytes = X.ToByteArray();
-            var NBytes = N.ToByteArray();
-            var key = new List<byte>();
-            key.AddRange(BitConverter.GetBytes(XBytes.Length));
-            key.AddRange(XBytes);
-            key.AddRange(BitConverter.GetBytes(NBytes.Length));
-            key.AddRange(NBytes);
-            this.key = Convert.ToBase64String(key.ToArray());
-        }
-
-        public abstract string toJSON();
-
-        protected void Save(string filename) => File.WriteAllText(filename, toJSON());
-
-        protected static TValue? Read<TValue>(string filename) {
-            return JsonSerializer.Deserialize<TValue>(File.ReadAllText(filename));
-        }
-
-        public override bool Equals(object? obj) {
-            if (obj == null) return false;
-            if (GetType() != obj.GetType()) return false;
-            obj = (KeyFile) obj;
-            return Equals((KeyFile) obj);
-        }
-        
-        public bool Equals(KeyFile that) {
-            return toJSON() == that.toJSON() && key == that.key && _X == that._X && _N == that._N;
-        }
-
-        public override string ToString() => toJSON();
-    }
-
-    public class PublicKey : KeyFile {
-        public string email { get; set; }
-        
-        public PublicKey(BigInteger X, BigInteger N) : base(X, N) {}
-
-        [JsonConstructor]
-        public PublicKey(string email, string key) : base(key) {
-            this.email = email;
-        }
-        
-        public override string toJSON() => JsonSerializer.Serialize(this);
-
-        public void Save() => base.Save("public.key");
-        
-        public static PublicKey? Read() => KeyFile.Read<PublicKey>("public.key");
-    }
-    
-    public class PrivateKey : KeyFile {
-        public List<string> email { get; set; } = new ();
-        
-        public PrivateKey(BigInteger X, BigInteger N) : base(X, N) {}
-
-        [JsonConstructor]
-        public PrivateKey(List<string> email, string key) : base(key) {
-            this.email = email;
-        }
-        
-        public void AddEmail(string email) {
-            this.email.Add(email);
-        }
-        
-        public override string toJSON() => JsonSerializer.Serialize(this);
-
-        public void Save() => base.Save("private.key");
-        
-        public static PrivateKey? Read() => KeyFile.Read<PrivateKey>("private.key");
     }
 }
