@@ -32,7 +32,7 @@ public class Tests {
 
     [Test, Order(1)]
     public void TestKeyGen() {
-        var (r, E, D) = Program.KeyGen();
+        var (r, E, D) = Program.KeyGen(1024);
         Assert.Less(E, r);
         Assert.False(E % r == 0);
         Assert.AreEqual(BigInteger.One, E * D % r);
@@ -58,26 +58,27 @@ public class Tests {
         Assert.AreEqual(message, privateKey.Decrypt(encrypted));
     }
     
-    [Test, Order(2)]
+    [Test, Order(3)]
     public void TestGetKey() => Program.GetKey("toivcs@rit.edu");
 
 
-    [Test, Order(2)]
+    [Test, Order(4)]
     public void TestSendKey() {
         var email = "nap7292@rit.edu";
         var code = Program.SendKey(email);
         Console.WriteLine(code);
         Program.GetKey(email);
+        Assert.AreEqual(Key.Public.Read(), Key.Public.Read(email));
     }
 
-    [Test, Order(3)]
+    [Test, Order(4)]
     public void TestSendMessage() {
         var email = "nap7292@rit.edu";
         var code = Program.SendMsg(email, "Hello");
         Console.WriteLine(code);
     }
     
-    [Test, Order(4)]
+    [Test, Order(5)]
     public void TestGetMessage() {
         var email = "nap7292@rit.edu";
         var code = Program.GetMsg(email);

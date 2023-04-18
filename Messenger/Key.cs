@@ -60,7 +60,7 @@ public abstract class Key {
     }
         
     public bool Equals(Key that) {
-        return toJSON() == that.toJSON() && key == that.key && _X == that._X && _N == that._N;
+        return key == that.key && _X == that._X && _N == that._N;
     }
 
     public override string ToString() => $"_X=0x{Convert.ToHexString(_X.ToByteArray())} _N=0x{Convert.ToHexString(_N.ToByteArray())} {toJSON()}";
@@ -90,9 +90,10 @@ public abstract class Key {
         public static Public? fromJSON(string content) => Key.fromJSON<Public>(content);
 
         public void Save() => base.Save("public.key");
-        
+        public void Save(string email) => base.Save($"{email}.key");
+
         public static Public? Read() => Key.Read<Public>("public.key");
-        public static Public? Read(string filename) => Key.Read<Public>(filename);
+        public static Public? Read(string email) => Key.Read<Public>($"{email}.key");
     }
     
     public class Private : Key {

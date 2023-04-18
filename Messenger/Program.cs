@@ -16,7 +16,7 @@ public class Program {
 
         switch (args[0]) {
             case "keyGen":
-                KeyGen();
+                KeyGen(Int32.Parse(args[1]));
                 break;
             case "sendKey":
                 SendKey(args[1]);
@@ -36,12 +36,12 @@ public class Program {
         }
     }
 
-    public static (BigInteger, BigInteger, BigInteger) KeyGen() {
+    public static (BigInteger, BigInteger, BigInteger) KeyGen(int keysize) {
         var pBits = 480;
         BigInteger N, r, E = 29, D;
         do {
             var p = PrimeGen.NextPrime(pBits);
-            var q = PrimeGen.NextPrime(1024 - pBits);
+            var q = PrimeGen.NextPrime(keysize - pBits);
             N = p * q;
             r = (p - 1) * (q - 1);
             D = ModInverse(E, r);
@@ -73,12 +73,12 @@ public class Program {
             throw new ArgumentException($"Email doesn't exist: {response.StatusCode}");
         }
         var key = Key.Public.fromJSON(response.Content.ReadAsStringAsync().Result);
-        key.Save($"{email}.key");
+        key.Save(email);
         return response.StatusCode;
     }
     
     public static HttpStatusCode SendMsg(string email, string msg) {
-        var publicKey = Key.Public.Read($"{email}.key");
+        var publicKey = Key.Public.Read(email);
         var encrypted = publicKey.Encrypt(msg);
         var message = new Message(email, encrypted);
         var response = Client.PutAsync($"/Message/{email}", JsonContent.Create(message)).Result;
