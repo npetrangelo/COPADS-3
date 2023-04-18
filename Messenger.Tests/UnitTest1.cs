@@ -65,7 +65,22 @@ public class Tests {
     [Test, Order(2)]
     public void TestSendKey() {
         var email = "nap7292@rit.edu";
-        Program.SendKey(email);
+        var code = Program.SendKey(email);
+        Console.WriteLine(code);
         Program.GetKey(email);
+    }
+
+    [Test, Order(3)]
+    public void TestSendMessage() {
+        var email = "nap7292@rit.edu";
+        var code = Program.SendMsg(email, "Hello");
+        Console.WriteLine(code);
+    }
+    
+    [Test, Order(4)]
+    public void TestGetMessage() {
+        var email = "nap7292@rit.edu";
+        var code = Program.GetMsg(email);
+        Console.WriteLine(code);
     }
 }

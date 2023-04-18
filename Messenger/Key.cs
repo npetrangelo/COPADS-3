@@ -13,7 +13,6 @@ public abstract class Key {
     public Key(string key) {
         this.key = key;
         var bytes = Convert.FromBase64String(key);
-        Console.WriteLine(Convert.ToHexString(bytes));
         var x = BitConverter.ToInt32(bytes.Take(new Range(0, 4)).Reverse().ToArray(), 0);
         _X = new BigInteger(bytes.Take(new Range(4, x + 4)).ToArray());
         var nBytes = BitConverter.ToInt32(bytes.Take(new Range(4 + x, 4 + x + 4)).Reverse().ToArray(), 0);
@@ -93,6 +92,7 @@ public abstract class Key {
         public void Save() => base.Save("public.key");
         
         public static Public? Read() => Key.Read<Public>("public.key");
+        public static Public? Read(string filename) => Key.Read<Public>(filename);
     }
     
     public class Private : Key {
