@@ -3,31 +3,62 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Numerics;
-using System.Text;
 using System.Text.Json;
 using Messenger;
 
 public class Program {
     public static readonly HttpClient Client = new ();
-    private const string Email = "nap7292@rit.edu";
     public static void Main(string[] args) {
-        Console.WriteLine("Hello, World!");
         Client.BaseAddress = new Uri("http://kayrun.cs.rit.edu:5000");
+        if (args.Length < 1) {
+            Console.WriteLine("Must pick keyGen, sendKey, getKey, sendMsg, or getMsg");
+            return;
+        }
 
         switch (args[0]) {
             case "keyGen":
+                if (args.Length < 2) {
+                    Console.WriteLine("must include keysize");
+                    return;
+                }
                 KeyGen(Int32.Parse(args[1]));
                 break;
             case "sendKey":
-                SendKey(args[1]);
+                if (args.Length < 2) {
+                    Console.WriteLine("must include email associated with key");
+                    return;
+                }
+
+                if (SendKey(args[1]) == HttpStatusCode.NoContent) {
+                    Console.WriteLine("Key saved");
+                }
                 break;
             case "getKey":
+                if (args.Length < 2) {
+                    Console.WriteLine("must include email associated with key");
+                    return;
+                }
                 GetKey(args[1]);
                 break;
             case "sendMsg":
-                SendMsg(args[1], args[2]);
+                if (args.Length < 2) {
+                    Console.WriteLine("must include email of recipient");
+                    return;
+                }
+                if (args.Length < 3) {
+                    Console.WriteLine("must include a message");
+                    return;
+                }
+
+                if (SendMsg(args[1], args[2]) == HttpStatusCode.NoContent) {
+                    Console.WriteLine("Message written");
+                }
                 break;
             case "getMsg":
+                if (args.Length < 2) {
+                    Console.WriteLine("must include email you are checking");
+                    return;
+                }
                 GetMsg(args[1]);
                 break;
             default:
@@ -70,7 +101,7 @@ public class Program {
     public static HttpStatusCode GetKey(string email) {
         var response = Client.GetAsync($"/Key/{email}").Result;
         if (response.StatusCode != HttpStatusCode.OK) {
-            throw new ArgumentException($"Email doesn't exist: {response.StatusCode}");
+            throw new ArgumentException($"key does not exist for {email}");
         }
         var key = Key.Public.fromJSON(response.Content.ReadAsStringAsync().Result);
         key.Save(email);
